@@ -11,25 +11,27 @@ import {
 const StopWatch = React.createClass({
   getInitialState: function() {
     return {
-      timeElapsed: null
+      timeElapsed: null,
+      running: false,
+      startTime: null
     }
   },
 
  render: function() {
    return <View style={styles.container}>
-      <View style={[styles.header, this.border('yellow')]}>
-        <View style={[styles.timerWrapper, this.border('red')]}>
-          <Text>
+      <View style={styles.header}>
+        <View style={styles.timerWrapper}>
+          <Text style={styles.timer}>
             {formatTime(this.state.timeElapsed)}
           </Text>
         </View>
-        <View style={[this.border('green'), styles.buttonWrapper]}>
+        <View style={styles.buttonWrapper}>
           {this.startStopButton()}
           {this.lapButton()}
         </View>
       </View>
 
-      <View style={[styles.footer, this.border('blue')]}>
+      <View style={styles.footer}>
         <Text>
           I am a list of Laps
         </Text>
@@ -37,37 +39,50 @@ const StopWatch = React.createClass({
    </View>
  },
  handleStartPress: function() {
-   var startTime = new Date();
-   setInterval(() => {
+   if(this.state.running) {
+      clearInterval(this.interval);
+      this.setState({running: false});
+      return;
+   }
+
+   this.setState({startTime: new Date()});
+
+   this.interval = setInterval(() => {
       this.setState({
-        timeElapsed: new Date() - startTime
+        timeElapsed: new Date() - this.state.startTime,
+        running: true
       });
    }, 30);
  },
+ handleLapPress: function() {
+   var lap = this.state.timeElapsed;
+
+   this.setState({startTime: new Date()});
+ },
  startStopButton: function() {
+   var style = this.state.running ? styles.stopButton : styles.startButton;
    return (
      <TouchableHighlight
         underlayColor="gray"
-        onPress={this.handleStartPress}>
+        onPress={this.handleStartPress}
+        style={[styles.button, style]} >
        <Text>
-         Start
+         {this.state.running ? 'Stop' : 'Start'}
        </Text>
      </TouchableHighlight>
    )
  },
  lapButton: function() {
-   return <View>
+   return <TouchableHighlight
+      underlayColor="gray"
+      style={styles.button}
+      onPress={this.handleLapPress} >
      <Text>
        Lap
      </Text>
-   </View>
+   </TouchableHighlight>
  },
- border: function(color) {
-   return {
-     borderColor: color,
-     borderWidth: 4
-   }
- }
+
 });
 
 var styles= StyleSheet.create({
@@ -82,15 +97,32 @@ var styles= StyleSheet.create({
     flex: 1
   },
   timerWrapper: {
-    flex: 0.75,
+    flex: 0.62,
     justifyContent: 'center',
     alignItems: 'center'
   },
   buttonWrapper: {
-    flex: 0.25,
+    flex: 0.38,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center'
+  },
+  timer: {
+    fontSize: 60
+  },
+  button: {
+    borderWidth: 2,
+    height: 100,
+    width: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  startButton: {
+    borderColor: '#00CC00'
+  },
+  stopButton: {
+    borderColor: '#CC0000'
   }
 });
 
